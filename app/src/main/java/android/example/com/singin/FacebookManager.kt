@@ -1,6 +1,7 @@
 package android.example.com.singin
 
 import android.content.Intent
+import android.os.Bundle
 import android.util.Log
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
@@ -28,26 +29,40 @@ class FacebookManager {
                         for (permission in result!!.recentlyDeniedPermissions) {
                             Log.e("tanya", permission)
                         }
-                        Log.e("Tanya", result?.accessToken?.applicationId.toString())
-                        GraphRequest.newMeRequest(
-                            result.getAccessToken()
+                        Log.e("Tanya", result.accessToken?.token!!)
+                        val request = GraphRequest.newMeRequest(
+                            result.accessToken
                         ) { json, response ->
                             if (response.error != null) {
                                 // handle error
                                 println("ERROR")
                             } else {
                                 println("Success")
-                                try {
-                                    val jsonresult = json.toString()
-                                    println("JSON Result$jsonresult")
-                                    Log.e("Tanya", json.getString("name"))
-                                    Log.e("Tanya", json.getString("id"))
-                                    Log.e("Tanya", json.getString("gender"))
-                                } catch (e: JSONException) {
-                                    e.printStackTrace()
-                                }
+                                val jsonresult = json.toString()
+                                println("JSON Result$jsonresult")
+                                Log.e("Tanya", "last_name".checkParameters(json) ?: "")
+                                Log.e("Tanya", "first_name".checkParameters(json) ?: "")
+                                Log.e("Tanya", "id".checkParameters(json) ?: "")
+                                Log.e("Tanya", "gender".checkParameters(json) ?: "")
+                                Log.e("Tanya", "birthday".checkParameters(json) ?: "")
+                                Log.e("Tanya", "link".checkParameters(json) ?: "")
+                                Log.e("Tanya", "location".checkParameters(json) ?: "")
+                                Log.e("Tanya", "hometown".checkParameters(json) ?: "")
                             }
-                        }.executeAsync()
+                        }
+
+                        val parametersBundle = Bundle().apply {
+                            putString(
+                                "fields",
+                                "id,birthday,gender,last_name,first_name,link,location,hometown,email"
+                            )
+                            putString("edges", "likes")
+                        }
+
+                        request.run {
+                            this.parameters = parametersBundle
+                            this.executeAsync()
+                        }
                         successCallback.invoke()
                     }
 
@@ -61,6 +76,14 @@ class FacebookManager {
                     }
 
                 })
+        }
+
+        fun checkException(parameterValue: String) {
+            try {
+                Log.e("Tanya", parameterValue)
+            } catch (e: JSONException) {
+                e.printStackTrace()
+            }
         }
 
         fun getResult(requestCode: Int, resultCode: Int, data: Intent) {
